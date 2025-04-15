@@ -44,7 +44,7 @@
   :group 'dave-java
   :type 'string)
 
-(defcustom dave-java-java-home "/usr/lib/jvm/default"
+(defcustom dave-java-java-home "/usr/lib/jvm/java-21-openjdk"
   "Path to java home for the jvm running jdtls."
   :group 'dave-java
   :type 'directory)
