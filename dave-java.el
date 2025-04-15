@@ -106,5 +106,5 @@
       (make-directory (file-name-directory dave-java-lombok-path) t)
       (url-copy-file dave-java-lombok-download-url dave-java-lombok-path))))
 
-(provide 'dave-projectile-utils)
+(provide 'dave-java)
 ;;; dave-java.el ends here
