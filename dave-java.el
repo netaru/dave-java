@@ -3,7 +3,7 @@
 ;; Author:    David Jonsson <david.jonsson306@gmail.com>
 ;; URL:       N/A
 ;; Version:   0.0.1
-;; Package-Requires: ((emacs "26.1"))
+;; Package-Requires: ((emacs "26.1") (consult "0.7.0") (f "0.6.0"))
 
 ;;; License:
 
@@ -64,6 +64,71 @@
   :group 'dave-java
   :type 'list)
 
+(defun dave-java-mvn-read-artifact-ids ()
+  "Read the project names from 'pom.xml' files.
+
+Requires 'find', 'xargs' and 'xq' to be installed and present on the exec-path.
+Macos requires 'yq' symlinked to 'xq'.
+"
+  (interactive)
+  (let* ((default-directory (projectile-project-root))
+         (candidates (split-string
+                      (shell-command-to-string "find . -name 'pom.xml' -type f -maxdepth 3 -print0 | xargs -0 -I{} xq -r .project.artifactId {}")
+                      "\n"
+                      t)))
+    candidates))
+
+(defun dave-java-mvn-run-test-unit (goal &optional args)
+  "Run test unit with maven. Has to be in a `java-ts-mode' file."
+  (interactive)
+  (let* ((file-name (buffer-file-name))
+         (class-name (car (split-string
+                           (car (last (split-string file-name "/")))
+                           "\\.")))
+         (root (locate-dominating-file default-directory "pom.xml"))
+         (default-directory root)
+         (mvn-cmd (format "cd %s && mvn -Dtest=%s %s %s" root class-name (if args "-Dmaven.surefire.debug" "") goal)))
+    (compilation-start mvn-cmd t (lambda (&rest _) (generate-new-buffer-name (format "*%s %s*" root class-name))))))
+
+(defun dave-java-mvn-run-test-case (goal &optional args)
+  "Run test case with maven. `consult-imenu--items' is Used to choose the target function to test. Has to be in a `java-ts-mode' file."
+  (interactive)
+  (let* ((file-name (buffer-file-name))
+         (class-name (car (split-string
+                           (car (last (split-string file-name "/")))
+                           "\\.")))
+         (test-case (car (imenu-choose-buffer-index "Test case: " (consult-imenu--items))))
+         (pos `(,(+ 1 (string-search "." test-case)) . ,(string-search "(" test-case)))
+         (test-name (substring test-case (car pos) (cdr pos)))
+         (root (locate-dominating-file default-directory "pom.xml"))
+         (default-directory root)
+         (mvn-cmd (format "cd %s && mvn -Dtest=%s#%s %s %s" root class-name test-name (if args "-Dmaven.surefire.debug" "") goal)))
+    (compilation-start mvn-cmd t (lambda (&rest _) (generate-new-buffer-name (format "*%s %s %s*" root class-name test-name))))))
+
+;;;###autoload
+(defun dave-java-mvn-run-test-unit-rebuild (&optional debug)
+  "Run mvn test on the current test buffer. By rebuilding with maven."
+  (interactive "P")
+  (dave-java-mvn-run-test-unit "test" debug))
+
+;;;###autoload
+(defun dave-java-mvn-run-test-unit-surefire (&optional debug)
+  "Run mvn surefire:test on the current test buffer. By using the built files in the target map."
+  (interactive "P")
+  (dave-java-mvn-run-test-unit "surefire:test" debug))
+
+;;;###autoload
+(defun dave-java-mvn-run-test-case-rebuild (&optional debug)
+  "Run mvn test on the current test buffer, choose a function to test. By rebuilding with maven."
+  (interactive "P")
+  (dave-java-mvn-run-test-case "test" debug))
+
+;;;###autoload
+(defun dave-java-mvn-run-test-case-surefire (&optional debug)
+  "Run mvn surefire:test on the current test buffer, choose a function to test. By using the built files in the target map."
+  (interactive "P")
+  (dave-java-mvn-run-test-case "surefire:test" debug))
+
 ;;;###autoload
 (defun dave-java-palantir-format-buffer ()
   (interactive)
@@ -105,6 +170,7 @@
     (progn
       (make-directory (file-name-directory dave-java-lombok-path) t)
       (url-copy-file dave-java-lombok-download-url dave-java-lombok-path))))
+
 
 (provide 'dave-java)
 ;;; dave-java.el ends here
