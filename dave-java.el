@@ -93,6 +93,7 @@ Macos requires 'yq' symlinked to 'xq'.
 (defun dave-java-mvn-run-test-case (goal &optional args)
   "Run test case with maven. `consult-imenu--items' is Used to choose the target function to test. Has to be in a `java-ts-mode' file."
   (interactive)
+  (require 'consult-imenu)
   (let* ((file-name (buffer-file-name))
          (class-name (car (split-string
                            (car (last (split-string file-name "/")))
