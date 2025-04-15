@@ -60,7 +60,7 @@
   :type 'file)
 
 (defcustom dave-java-format-program-args '("--skip-reflowing-long-strings" "--palantir" "-")
-  "Arguments passed to the format program `dave-java-format-program-path'".
+  "Arguments passed to the format program `dave-java-format-program-path'."
   :group 'dave-java
   :type 'list)
 
