@@ -49,7 +49,7 @@
   :group 'dave-java
   :type 'directory)
 
-(defcustom dave-java-java-path "/usr/lib/jvm/java-17-openjdk/bin/java"
+(defcustom dave-java-java-path "/usr/lib/jvm/java-21-openjdk/bin/java"
   "Path of the java executable. Used for lsp and other development tools."
   :group 'dave-java
   :type '(file :must-match t))
